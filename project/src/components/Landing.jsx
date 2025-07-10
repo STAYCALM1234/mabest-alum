@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import wale from '../Components/images/wale.jpg';
 import ayobami from '../Components/images/ayobami.jpg';
+import ike from '../Components/images/ike.jpg';
 
 
 import { 
@@ -28,7 +29,7 @@ const Landing = () => {
     {
       id: 1,
       name: "Ebitigha Adewala",
-      course: "Mechanic Engineering",
+      course: "Mechanical Engineering",
       image: wale,
       text: "Mabest Academy didn't just give me an education; it gave me a family. The connections I made here continue to open doors in my career.",
       rating: 5
@@ -43,9 +44,9 @@ const Landing = () => {
     },
     {
       id: 3,
-      name: "Emily Rodriguez",
-      course: "Engineering '21",
-      image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+      name: "Aladeniy Ikeoluwapo",
+      course: "Pharmacy",
+      image: ike,
       text: "Being part of the Mabest Academy alumni network has been transformative. The support and opportunities are endless.",
       rating: 5
     }
