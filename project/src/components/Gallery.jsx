@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  GraduationCap, 
-  ArrowLeft, 
-  Image as ImageIcon, 
+import {
+  GraduationCap,
+  ArrowLeft,
+  Image as ImageIcon,
   Calendar,
   User,
   Heart,
@@ -12,36 +12,39 @@ import {
   Share2,
   X
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+
+// Preloaded graduation images (frontend only)
+const galleryImages = [
+  { url: '/images/grad5.jpg', caption: 'With Friends', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad2.jpg', caption: 'Classic love ', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad3.jpg', caption: 'Hug and Smile', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad4.jpg', caption: 'Set of 2023', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
+  { url: '/images/grad1.jpg', caption: 'Couple of the year', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad6.jpg', caption: 'Proud Family', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad7.jpg', caption: 'Trophy Moment', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad8.jpg', caption: 'Prom 2024', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad9.jpg', caption: 'prom 2023', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
+  { url: '/images/grad10.jpg', caption: 'Posing Proudly ', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad11.jpg', caption: 'Joyful Celebration', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
+  { url: '/images/grad12.jpg', caption: 'prom 2024', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad13.jpg', caption: 'Alumni Vibes', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad14.jpg', caption: 'Smiles Everywhere', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad15.jpg', caption: 'Joyful Celebration', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' }
+];
 
 const Gallery = () => {
-  const { galleryImages } = useAuth();
   const [selectedImage, setSelectedImage] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('graduation');
 
-
-  const allImages = galleryImages;
-  
-  const filteredImages = filter === 'all' 
-    ? allImages 
-    : allImages.filter(img => img.category === filter);
+  const filteredImages = galleryImages.filter(img => img.category === filter);
 
   const categories = [
-    { id: 'all', name: 'All Photos', count: allImages.length },
-    { id: 'graduation', name: 'Graduation', count: allImages.filter(img => img.category === 'graduation').length },
-    { id: 'events', name: 'Events', count: allImages.filter(img => img.category === 'events').length },
-    { id: 'campus', name: 'Campus Life', count: allImages.filter(img => img.category === 'campus').length }
+    { id: 'graduation', name: 'Graduation Photos', count: galleryImages.filter(i => i.category === 'graduation').length },
+    { id: 'alumni', name: 'Alumni Images', count: 0 }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-      </div>
-
-      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,61 +52,39 @@ const Gallery = () => {
         className="relative z-10 container mx-auto px-6 py-8"
       >
         <nav className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/"
-              className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors duration-300"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Home</span>
-            </Link>
-          </div>
+          <Link to="/" className="flex items-center space-x-2 text-white hover:text-blue-200">
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Home</span>
+          </Link>
           <div className="flex items-center space-x-3">
             <GraduationCap className="w-8 h-8 text-white" />
             <span className="text-2xl font-bold text-white">Mabest Academy</span>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="text-white hover:text-blue-200 transition-colors duration-300 font-medium"
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="bg-white text-blue-900 px-6 py-2 rounded-full font-medium hover:bg-blue-50 transition-all duration-300 transform hover:scale-105"
-            >
-              Join Now
-            </Link>
-          </div>
         </nav>
       </motion.header>
 
-      {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.3 }}
-        className="relative z-10 container mx-auto px-6 py-12 text-center"
+        className="text-center container mx-auto px-6 py-12"
       >
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 text-shadow">
-          Alumni
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300"> Gallery</span>
+        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          Alumni <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300">Gallery</span>
         </h1>
-        <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Explore memories, moments, and milestones shared by our vibrant alumni community.
+        <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          Explore memories and milestones shared by our alumni.
         </p>
       </motion.section>
 
-      {/* Filter Categories */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
-        className="relative z-10 container mx-auto px-6 mb-12"
+        className="container mx-auto px-6 mb-12"
       >
         <div className="flex flex-wrap justify-center gap-4">
-          {categories.map((category) => (
+          {categories.map(category => (
             <button
               key={category.id}
               onClick={() => setFilter(category.id)}
@@ -119,21 +100,40 @@ const Gallery = () => {
         </div>
       </motion.section>
 
-      {/* Gallery Grid */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.7 }}
-        className="relative z-10 container mx-auto px-6 pb-20"
+        className="container mx-auto px-6 pb-20"
       >
-        <div className="text-center py-20">
-          <ImageIcon className="w-20 h-20 text-gray-400 mx-auto mb-6" />
-          <h3 className="text-2xl font-bold text-white mb-4">No pictures now</h3>
-          <p className="text-blue-200">Check back later for more memories!</p>
-        </div>
+        {filteredImages.length === 0 ? (
+          <div className="text-center py-20">
+            <ImageIcon className="w-20 h-20 text-gray-400 mx-auto mb-6" />
+            <h3 className="text-2xl font-bold text-white mb-4">No {filter} images yet</h3>
+            <p className="text-blue-200">Check back later for updates!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {filteredImages.map((image, index) => (
+              <div
+                key={index}
+                className="relative rounded-lg overflow-hidden cursor-pointer group"
+                onClick={() => setSelectedImage(image)}
+              >
+                <img
+                  src={image.url}
+                  alt={image.caption}
+                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-transparent to-transparent text-white text-sm px-3 py-2">
+                  {image.caption}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.section>
 
-      {/* Image Modal */}
       {selectedImage && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center px-4 z-50">
           <motion.div
@@ -144,47 +144,36 @@ const Gallery = () => {
           >
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 transition-colors duration-300"
+              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300"
             >
               <X className="w-8 h-8" />
             </button>
-            
             <div className="flex flex-col lg:flex-row h-full">
               <div className="flex-1 flex items-center justify-center p-4">
-                <img
-                  src={selectedImage.url}
-                  alt={selectedImage.caption}
-                  className="max-w-full max-h-full object-contain rounded-lg"
-                />
+                <img src={selectedImage.url} alt={selectedImage.caption} className="max-w-full max-h-full object-contain rounded-lg" />
               </div>
-              
               <div className="lg:w-80 p-6 space-y-4">
                 <h3 className="text-xl font-bold text-white">{selectedImage.caption}</h3>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 text-blue-200">
+                <div className="space-y-3 text-blue-200">
+                  <div className="flex items-center space-x-3">
                     <User className="w-5 h-5" />
-                    <span>{selectedImage.uploadedBy?.split('@')[0] || 'Anonymous'}</span>
+                    <span>{selectedImage.uploadedBy}</span>
                   </div>
-                  
-                  <div className="flex items-center space-x-3 text-blue-200">
+                  <div className="flex items-center space-x-3">
                     <Calendar className="w-5 h-5" />
                     <span>{new Date(selectedImage.uploadedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                
                 <div className="flex items-center space-x-6 pt-4 border-t border-white border-opacity-20">
-                  <button className="flex items-center space-x-2 text-white hover:text-red-400 transition-colors duration-300">
+                  <button className="flex items-center space-x-2 text-white hover:text-red-400">
                     <Heart className="w-5 h-5" />
                     <span>Like</span>
                   </button>
-                  
-                  <button className="flex items-center space-x-2 text-white hover:text-blue-400 transition-colors duration-300">
+                  <button className="flex items-center space-x-2 text-white hover:text-blue-400">
                     <MessageCircle className="w-5 h-5" />
                     <span>Comment</span>
                   </button>
-                  
-                  <button className="flex items-center space-x-2 text-white hover:text-green-400 transition-colors duration-300">
+                  <button className="flex items-center space-x-2 text-white hover:text-green-400">
                     <Share2 className="w-5 h-5" />
                     <span>Share</span>
                   </button>

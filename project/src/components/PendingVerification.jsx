@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { color, motion } from 'framer-motion';
 import { Clock, Mail, CheckCircle, GraduationCap } from 'lucide-react';
 
 const PendingVerification = () => {
@@ -31,7 +31,7 @@ const PendingVerification = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 1.2, delay: 0.6 }}
             className="glass-effect rounded-2xl p-8 space-y-6"
           >
             {/* Status Icon */}
@@ -80,8 +80,9 @@ const PendingVerification = () => {
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
               <div className="flex items-center justify-center space-x-2 text-blue-200">
                 <Mail className="w-5 h-5" />
-                <span>Need help? Contact us at admin@mabest.edu</span>
+                <span>Need help? Contact us at ayobamioluwadiya5@gmail.com</span>
               </div>
+              <span>whatsapp us now for direct message <a href="https//wa.me/08161594572">Direct message</a> </span>
             </div>
 
             {/* Actions */}
