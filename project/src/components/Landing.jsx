@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import wale from '../components/images/Wale.jpg';
+import wale from '../components/images/wale.jpg';
 import ayobami from '../components/images/ayobami.jpg';
 import ike from '../components/images/ike.jpg';
 
