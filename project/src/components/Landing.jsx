@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import wale from '../Components/images/Wale.jpg';
-import ayobami from '../Components/images/ayobami.jpg';
-import ike from '../Components/images/ike.jpg';
+import wale from '../components/images/Wale.jpg';
+import ayobami from '../components/images/ayobami.jpg';
+import ike from '../components/images/ike.jpg';
 
 
 import { 
