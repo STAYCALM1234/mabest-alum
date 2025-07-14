@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Toaster } from 'react-hot-toast'; // ✅ Import toast
 import Landing from './components/Landing';
 import Gallery from './components/Gallery';
 import Login from './components/Login';
@@ -17,6 +18,15 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      {/* ✅ Global toast handler */}
+      <Toaster position="top-right" reverseOrder={false} toastOptions={{
+        duration: 3000,
+        style: {
+          background: '#1E293B',
+          color: '#fff',
+        },
+      }} />
+
       <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<Landing />} />

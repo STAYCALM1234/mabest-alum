@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, Key, GraduationCap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -29,20 +30,19 @@ const AdminRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (formData.adminSetupKey !== ADMIN_SETUP_KEY) {
-      alert('Invalid admin setup key');
+      toast.error('Invalid admin setup key');
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
+
     setTimeout(() => {
       const adminData = {
         username: formData.username,
@@ -50,8 +50,9 @@ const AdminRegister = () => {
         role: 'admin',
         registeredAt: new Date().toISOString()
       };
-      
+
       login(adminData, 'admin');
+      toast.success('Admin registered successfully');
       navigate('/admin-dashboard');
       setIsLoading(false);
     }, 1500);
@@ -59,7 +60,6 @@ const AdminRegister = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
@@ -72,7 +72,6 @@ const AdminRegister = () => {
           transition={{ duration: 0.8 }}
           className="w-full max-w-md"
         >
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <GraduationCap className="w-10 h-10 text-white" />
@@ -82,7 +81,6 @@ const AdminRegister = () => {
             <p className="text-blue-200 mt-2">Create your admin account</p>
           </div>
 
-          {/* Registration Form */}
           <motion.form
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -91,102 +89,52 @@ const AdminRegister = () => {
             className="glass-effect rounded-2xl p-8 space-y-6"
           >
             <div className="space-y-4">
-              <div>
-                <label className="block text-white text-sm font-medium mb-2">Username</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-                    placeholder="Enter your username"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white text-sm font-medium mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white text-sm font-medium mb-2">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-                    placeholder="Create a password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white text-sm font-medium mb-2">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-                    placeholder="Confirm your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white text-sm font-medium mb-2">Admin Setup Key</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="password"
-                    name="adminSetupKey"
-                    value={formData.adminSetupKey}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-                    placeholder="Enter admin setup key"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-blue-200 mt-1">
-                  Contact the system administrator for the setup key
-                </p>
-              </div>
+              <InputField
+                label="Username"
+                icon={<User />}
+                name="username"
+                type="text"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Enter your username"
+              />
+              <InputField
+                label="Email"
+                icon={<Mail />}
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+              />
+              <PasswordField
+                label="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                show={showPassword}
+                setShow={setShowPassword}
+              />
+              <PasswordField
+                label="Confirm Password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                show={showConfirmPassword}
+                setShow={setShowConfirmPassword}
+              />
+              <InputField
+                label="Admin Setup Key"
+                icon={<Key />}
+                name="adminSetupKey"
+                type="password"
+                value={formData.adminSetupKey}
+                onChange={handleChange}
+                placeholder="Enter admin setup key"
+              />
+              <p className="text-xs text-blue-200 mt-1">
+                Contact the system administrator for the setup key
+              </p>
             </div>
 
             <button
@@ -218,5 +166,51 @@ const AdminRegister = () => {
     </div>
   );
 };
+
+// Components for reusability
+const InputField = ({ label, icon, name, type, value, onChange, placeholder }) => (
+  <div>
+    <label className="block text-white text-sm font-medium mb-2">{label}</label>
+    <div className="relative">
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5">
+        {icon}
+      </div>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full pl-12 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
+        placeholder={placeholder}
+        required
+      />
+    </div>
+  </div>
+);
+
+const PasswordField = ({ label, name, value, onChange, show, setShow }) => (
+  <div>
+    <label className="block text-white text-sm font-medium mb-2">{label}</label>
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <input
+        type={show ? 'text' : 'password'}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full pl-12 pr-12 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
+        placeholder={label}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
+      >
+        {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+      </button>
+    </div>
+  </div>
+);
 
 export default AdminRegister;

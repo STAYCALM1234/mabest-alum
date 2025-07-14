@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, GraduationCap, Users, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -24,8 +25,14 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.email || !formData.password) {
+      toast.error('Please enter email and password');
+      return;
+    }
+
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       const userData = {
@@ -33,21 +40,22 @@ const Login = () => {
         name: formData.email.split('@')[0],
         loginTime: new Date().toISOString()
       };
-      
+
       login(userData, formData.userType);
-      
+      toast.success(`Welcome back, ${userData.name}`);
+
       if (formData.userType === 'admin') {
         navigate('/admin-dashboard');
       } else {
         navigate('/dashboard');
       }
+
       setIsLoading(false);
     }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
@@ -60,7 +68,6 @@ const Login = () => {
           transition={{ duration: 0.8 }}
           className="w-full max-w-md"
         >
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <GraduationCap className="w-10 h-10 text-white" />
@@ -70,7 +77,6 @@ const Login = () => {
             <p className="text-blue-200 mt-2">Sign in to your account</p>
           </div>
 
-          {/* User Type Selector */}
           <div className="flex mb-6 glass-effect rounded-xl p-1">
             <button
               type="button"
@@ -98,7 +104,6 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Login Form */}
           <motion.form
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

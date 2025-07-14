@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, BookOpen, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -40,14 +41,14 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       addApplication({
@@ -57,19 +58,19 @@ const Register = () => {
         courseOfStudy: formData.courseOfStudy,
         password: formData.password
       });
-      
+
+      toast.success('Account created successfully!');
       navigate('/pending-verification');
       setIsLoading(false);
     }, 1500);
   };
 
   const handleGoogleSignIn = () => {
-    alert('Google Sign-In integration would be implemented here');
+    toast('Google Sign-In integration would be implemented here', { icon: '⚙️' });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
@@ -82,7 +83,6 @@ const Register = () => {
           transition={{ duration: 0.8 }}
           className="w-full max-w-md"
         >
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <GraduationCap className="w-10 h-10 text-white" />
@@ -92,7 +92,6 @@ const Register = () => {
             <p className="text-blue-200 mt-2">Create your account to get started</p>
           </div>
 
-          {/* Registration Form */}
           <motion.form
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,6 +100,7 @@ const Register = () => {
             className="glass-effect rounded-2xl p-8 space-y-6"
           >
             <div className="space-y-4">
+              {/* Name */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Full Name</label>
                 <div className="relative">
@@ -117,6 +117,7 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Email */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Email</label>
                 <div className="relative">
@@ -133,6 +134,7 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Phone */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Phone Number</label>
                 <div className="relative">
@@ -149,6 +151,7 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Course of Study */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Course of Study</label>
                 <div className="relative">
@@ -168,6 +171,7 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Password */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Password</label>
                 <div className="relative">
@@ -191,6 +195,7 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Confirm Password */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Confirm Password</label>
                 <div className="relative">
@@ -215,6 +220,7 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -239,6 +245,7 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Google Sign-In */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
