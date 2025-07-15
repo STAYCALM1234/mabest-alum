@@ -25,33 +25,26 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { email, password, userType } = formData;
 
-    if (!formData.email || !formData.password) {
+    if (!email || !password) {
       toast.error('Please enter email and password');
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const userData = {
-        email: formData.email,
-        name: formData.email.split('@')[0],
-        loginTime: new Date().toISOString()
-      };
+    const result = await login({ email, password }, userType);
 
-      login(userData, formData.userType);
-      toast.success(`Welcome back, ${userData.name}`);
-
-      if (formData.userType === 'admin') {
+    if (result.success) {
+      if (result.role === 'admin') {
         navigate('/admin-dashboard');
       } else {
         navigate('/dashboard');
       }
+    }
 
-      setIsLoading(false);
-    }, 1500);
+    setIsLoading(false);
   };
 
   return (
