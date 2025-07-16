@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -12,9 +12,10 @@ import {
   Share2,
   X
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // ✅ make sure the path is correct
 
 // Preloaded graduation images (frontend only)
-const galleryImages = [
+const galleryImagesStatic = [
   { url: '/images/grad5.jpg', caption: 'With Friends', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad2.jpg', caption: 'Classic love ', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad3.jpg', caption: 'Hug and Smile', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
@@ -23,10 +24,10 @@ const galleryImages = [
   { url: '/images/grad6.jpg', caption: 'Proud Family', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad7.jpg', caption: 'Trophy Moment', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad8.jpg', caption: 'Prom 2024', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
-  { url: '/images/grad9.jpg', caption: 'prom 2023', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
+  { url: '/images/grad9.jpg', caption: 'Prom 2023', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
   { url: '/images/grad10.jpg', caption: 'Posing Proudly ', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad11.jpg', caption: 'Joyful Celebration', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2023-07-01' },
-  { url: '/images/grad12.jpg', caption: 'prom 2024', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
+  { url: '/images/grad12.jpg', caption: 'Prom 2024', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad13.jpg', caption: 'Alumni Vibes', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad14.jpg', caption: 'Smiles Everywhere', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' },
   { url: '/images/grad15.jpg', caption: 'Joyful Celebration', category: 'graduation', uploadedBy: 'admin@school.com', uploadedAt: '2024-07-01' }
@@ -35,12 +36,22 @@ const galleryImages = [
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [filter, setFilter] = useState('graduation');
+  const { galleryImages, fetchGalleryImages } = useAuth();
 
-  const filteredImages = galleryImages.filter(img => img.category === filter);
+  useEffect(() => {
+    if (filter === 'alumni') {
+      fetchGalleryImages();
+    }
+  }, [filter]);
+
+  const filteredImages =
+    filter === 'graduation'
+      ? galleryImagesStatic
+      : galleryImages.map(img => ({ ...img, category: 'alumni' }));
 
   const categories = [
-    { id: 'graduation', name: 'Graduation Photos', count: galleryImages.filter(i => i.category === 'graduation').length },
-    { id: 'alumni', name: 'Alumni Images', count: 0 }
+    { id: 'graduation', name: 'Graduation Photos', count: galleryImagesStatic.length },
+    { id: 'alumni', name: 'Alumni Images', count: galleryImages.length }
   ];
 
   return (

@@ -10,30 +10,23 @@ export const AuthProvider = ({ children }) => {
   const [userType, setUserType] = useState(null);
   const [users, setUsers] = useState([]);
   const [galleryImages, setGalleryImages] = useState([]);
-  const [loading, setLoading] = useState(true); // 🔁 Session loading state
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch all users (for admin)
   const fetchUsers = async () => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      toast.error('Could not fetch users');
-    } else {
-      setUsers(data);
-    }
+    if (!error) setUsers(data);
   };
 
-  // ✅ Load session on mount and check user role
   useEffect(() => {
     const loadSession = async () => {
       const { data } = await supabase.auth.getSession();
       const sessionUser = data?.session?.user;
 
       if (sessionUser) {
-        // Check if admin
         const { data: admin } = await supabase
           .from('admins')
           .select('*')
@@ -48,7 +41,6 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // Check if verified user
         const { data: profile } = await supabase
           .from('users')
           .select('*')
@@ -61,13 +53,12 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      setLoading(false); // ✅ Done loading
+      setLoading(false);
     };
 
     loadSession();
   }, []);
 
-  // ✅ Login
   const login = async ({ email, password }, type) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -116,7 +107,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Logout
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -124,7 +114,6 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out');
   };
 
-  // ✅ Register user (default: pending approval)
   const registerUser = async (form) => {
     const { data: authUser, error: signupError } = await supabase.auth.signUp({
       email: form.email,
@@ -161,7 +150,6 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
-  // ✅ Register admin
   const registerAdmin = async ({ username, email, password, adminSetupKey }) => {
     const ADMIN_SETUP_KEY = 'MABEST_ADMIN_2024';
     if (adminSetupKey !== ADMIN_SETUP_KEY) {
@@ -198,49 +186,55 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
-  // ✅ Admin approves or rejects user
   const updateUserApproval = async (id, approved) => {
     const { error } = await supabase.from('users').update({ approved }).eq('id', id);
 
-    if (error) {
-      toast.error('Failed to update user status');
+    if (!error) {
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, approved } : u));
+      toast.success(`User ${approved ? 'approved' : 'rejected'}`);
+    }
+  };
+
+  const addGalleryImage = async ({ file, caption }) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data: storageData, error: uploadError } = await supabase.storage
+      .from('gallery')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      toast.error('Upload failed');
       return;
     }
 
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, approved } : u));
-    toast.success(`User ${approved ? 'approved' : 'rejected'}`);
-  };
+    const { data: publicUrlData } = supabase.storage
+      .from('gallery')
+      .getPublicUrl(fileName);
 
-  // ✅ Add gallery image
-  const addGalleryImage = async (image) => {
-    const { error } = await supabase.from('gallery').insert([{
-      url: image.url,
-      caption: image.caption,
+    const url = publicUrlData.publicUrl;
+
+    const { error: dbError } = await supabase.from('gallery').insert([{
+      url,
+      caption,
       uploadedBy: user?.email,
       uploadedAt: new Date().toISOString(),
     }]);
 
-    if (error) {
-      toast.error('Failed to add image');
+    if (dbError) {
+      toast.error('Failed to save image info');
     } else {
       toast.success('Image uploaded');
       fetchGalleryImages();
     }
   };
 
-  // ✅ Delete gallery image
   const removeGalleryImage = async (id) => {
     const { error } = await supabase.from('gallery').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Failed to delete image');
-    } else {
+    if (!error) {
       toast.success('Image removed');
       fetchGalleryImages();
     }
   };
 
-  // ✅ Fetch gallery
   const fetchGalleryImages = async () => {
     const { data, error } = await supabase
       .from('gallery')
@@ -255,7 +249,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         userType,
-        loading, // ✅ for session state
+        loading,
         users,
         galleryImages,
         login,
@@ -265,6 +259,7 @@ export const AuthProvider = ({ children }) => {
         updateUserApproval,
         addGalleryImage,
         removeGalleryImage,
+        fetchGalleryImages,
       }}
     >
       {children}
