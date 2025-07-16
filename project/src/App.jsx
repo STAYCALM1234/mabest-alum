@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { Toaster } from 'react-hot-toast'; // ✅ Import toast
+import { Toaster } from 'react-hot-toast';
 import Landing from './components/Landing';
 import Gallery from './components/Gallery';
 import Login from './components/Login';
@@ -14,18 +14,27 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
 function AppContent() {
-  const { user, userType } = useAuth();
+  const { user, userType, loading } = useAuth();
+
+  // ✅ Prevent rendering until session is loaded
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white text-xl">
+        Checking session...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-      {/* ✅ Global toast handler */}
-      <Toaster position="top-right" reverseOrder={false} toastOptions={{
-        duration: 3000,
-        style: {
-          background: '#1E293B',
-          color: '#fff',
-        },
-      }} />
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+          style: { background: '#1E293B', color: '#fff' },
+        }}
+      />
 
       <AnimatePresence mode="wait">
         <Routes>

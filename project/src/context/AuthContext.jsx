@@ -10,8 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [userType, setUserType] = useState(null);
   const [users, setUsers] = useState([]);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [loading, setLoading] = useState(true); // 🔁 Session loading state
 
-  // ✅ Fetch all users (admin only)
+  // ✅ Fetch all users (for admin)
   const fetchUsers = async () => {
     const { data, error } = await supabase
       .from('users')
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Load session on mount
+  // ✅ Load session on mount and check user role
   useEffect(() => {
     const loadSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }) => {
           setUser({ ...admin, role: 'admin' });
           setUserType('admin');
           await fetchUsers();
+          setLoading(false);
           return;
         }
 
@@ -51,20 +53,21 @@ export const AuthProvider = ({ children }) => {
           .from('users')
           .select('*')
           .eq('email', sessionUser.email)
-          .eq('approved', true)
           .single();
 
-        if (profile) {
+        if (profile?.approved === true) {
           setUser({ ...profile, role: 'user' });
           setUserType('user');
         }
       }
+
+      setLoading(false); // ✅ Done loading
     };
 
     loadSession();
   }, []);
 
-  // ✅ Login handler
+  // ✅ Login
   const login = async ({ email, password }, type) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -99,10 +102,9 @@ export const AuthProvider = ({ children }) => {
       .from('users')
       .select('*')
       .eq('email', sessionUser.email)
-      .eq('approved', true)
       .single();
 
-    if (profile) {
+    if (profile?.approved === true) {
       setUser({ ...profile, role: 'user' });
       setUserType('user');
       toast.success('Login successful');
@@ -122,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out');
   };
 
-  // ✅ Register regular user
+  // ✅ Register user (default: pending approval)
   const registerUser = async (form) => {
     const { data: authUser, error: signupError } = await supabase.auth.signUp({
       email: form.email,
@@ -146,7 +148,7 @@ export const AuthProvider = ({ children }) => {
       email: form.email,
       phone: form.phone,
       course: form.courseOfStudy,
-      approved: null, // pending by default
+      approved: null,
       created_at: new Date().toISOString()
     }]);
 
@@ -238,7 +240,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fetch all gallery images
+  // ✅ Fetch gallery
   const fetchGalleryImages = async () => {
     const { data, error } = await supabase
       .from('gallery')
@@ -253,6 +255,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         userType,
+        loading, // ✅ for session state
         users,
         galleryImages,
         login,
