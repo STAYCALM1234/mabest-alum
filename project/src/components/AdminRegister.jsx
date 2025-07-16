@@ -1,228 +1,196 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Users, UserCheck, UserX, Clock,
-  GraduationCap, LogOut, Search, Filter,
-  Mail, Phone, BookOpen, Calendar
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, Eye, EyeOff, Key, GraduationCap } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { supabase } from '../components/supabaseClient';
 
-const AdminDashboard = () => {
-  const { user, logout, applications, updateApplicationStatus } = useAuth();
-  const users = applications;
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+const AdminRegister = () => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    adminSetupKey: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const ADMIN_SETUP_KEY = 'MABEST_ADMIN_2024';
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const getStatus = (approved) => {
-    if (approved === true) return 'approved';
-    if (approved === false) return 'rejected';
-    return 'pending';
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const filteredApplications = users.filter(app => {
-    const matchesSearch =
-      app.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.course?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
 
-    const status = getStatus(app.approved);
-    const matchesFilter = filterStatus === 'all' || filterStatus === status;
+    if (formData.adminSetupKey !== ADMIN_SETUP_KEY) {
+      toast.error('Invalid admin setup key');
+      return;
+    }
 
-    return matchesSearch && matchesFilter;
-  });
+    setIsLoading(true);
 
-  const getStatusColor = (approved) => {
-    const status = getStatus(approved);
-    if (status === 'approved') return 'status-approved';
-    if (status === 'rejected') return 'status-rejected';
-    return 'status-pending';
-  };
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password
+      });
 
-  const getStatusIcon = (approved) => {
-    const status = getStatus(approved);
-    if (status === 'approved') return <UserCheck className="w-5 h-5" />;
-    if (status === 'rejected') return <UserX className="w-5 h-5" />;
-    return <Clock className="w-5 h-5" />;
-  };
+      if (authError) {
+        toast.error(authError.message);
+        setIsLoading(false);
+        return;
+      }
 
-  const stats = {
-    total: users.length,
-    approved: users.filter(u => getStatus(u.approved) === 'approved').length,
-    rejected: users.filter(u => getStatus(u.approved) === 'rejected').length,
-    pending: users.filter(u => getStatus(u.approved) === 'pending').length,
+      const adminId = authData.user?.id;
+
+      const { error: dbError } = await supabase.from('admins').insert([{
+        id: adminId,
+        username: formData.username,
+        email: formData.email,
+        created_at: new Date().toISOString()
+      }]);
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        toast.error('Failed to save admin profile');
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success('Admin registered successfully');
+      navigate('/admin-dashboard');
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error('Unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white bg-opacity-10 backdrop-blur-sm border-b border-white border-opacity-20"
-      >
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <GraduationCap className="w-8 h-8 text-white" />
-            <div>
-              <h1 className="text-xl font-bold text-white">Mabest Academy</h1>
-              <p className="text-blue-200 text-sm">Admin Dashboard</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
+      {/* Blur Backgrounds */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="w-full max-w-md"
+        >
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <GraduationCap className="w-10 h-10 text-white" />
+              <span className="text-3xl font-bold text-white">Mabest Academy</span>
             </div>
+            <h2 className="text-2xl font-bold text-white">Admin Registration</h2>
+            <p className="text-blue-200 mt-2">Create your admin account</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-white font-medium">Welcome, {user?.username}</p>
-              <p className="text-blue-200 text-sm">Administrator</p>
+
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            onSubmit={handleSubmit}
+            className="glass-effect rounded-2xl p-8 space-y-6"
+          >
+            <div className="space-y-4">
+              <InputField label="Username" icon={<User />} name="username" type="text" value={formData.username} onChange={handleChange} placeholder="Enter your username" />
+              <InputField label="Email" icon={<Mail />} name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" />
+              <PasswordField label="Password" name="password" value={formData.password} onChange={handleChange} show={showPassword} setShow={setShowPassword} />
+              <PasswordField label="Confirm Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} show={showConfirmPassword} setShow={setShowConfirmPassword} />
+              <InputField label="Admin Setup Key" icon={<Key />} name="adminSetupKey" type="password" value={formData.adminSetupKey} onChange={handleChange} placeholder="Enter admin setup key" />
+              <p className="text-xs text-blue-200 mt-1">Contact the system administrator for the setup key</p>
             </div>
+
             <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors duration-300"
+              type="submit"
+              disabled={isLoading}
+              className="w-full btn-primary text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              <LogOut className="w-5 h-5" />
-              <span>Logout</span>
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Creating Admin Account...</span>
+                </>
+              ) : (
+                <span>Create Admin Account</span>
+              )}
             </button>
-          </div>
-        </div>
-      </motion.header>
 
-      <div className="container mx-auto px-6 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-        >
-          <StatCard icon={<Users />} label="Total Users" value={stats.total} />
-          <StatCard icon={<Clock />} label="Pending" value={stats.pending} />
-          <StatCard icon={<UserCheck />} label="Approved" value={stats.approved} />
-          <StatCard icon={<UserX />} label="Rejected" value={stats.rejected} />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="glass-effect rounded-xl p-6 mb-8"
-        >
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
-              />
+            <div className="text-center">
+              <p className="text-blue-200 text-sm">
+                Already have an account?{' '}
+                <Link to="/login" className="text-white font-medium hover:underline">
+                  Sign in here
+                </Link>
+              </p>
             </div>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="pl-10 pr-8 py-3 bg-white bg-opacity-20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300 appearance-none"
-              >
-                <option value="all" className="text-gray-900">All Status</option>
-                <option value="pending" className="text-gray-900">Pending</option>
-                <option value="approved" className="text-gray-900">Approved</option>
-                <option value="rejected" className="text-gray-900">Rejected</option>
-              </select>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="space-y-4"
-        >
-          {filteredApplications.length === 0 ? (
-            <div className="glass-effect rounded-xl p-12 text-center">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Users Found</h3>
-              <p className="text-blue-200">No users match your current filter/search.</p>
-            </div>
-          ) : (
-            filteredApplications.map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="glass-effect rounded-xl p-6 card-hover"
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {user.name?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">{user.name}</h3>
-                        <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.approved)}`}>
-                          {getStatusIcon(user.approved)}
-                          <span>{getStatus(user.approved)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-200">
-                      <InfoRow icon={Mail} text={user.email} />
-                      <InfoRow icon={Phone} text={user.phone} />
-                      <InfoRow icon={BookOpen} text={user.course} />
-                      <InfoRow icon={Calendar} text={new Date(user.created_at).toLocaleDateString()} />
-                    </div>
-                  </div>
-
-                  {getStatus(user.approved) === 'pending' && (
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => updateApplicationStatus(user.id, true)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300 flex items-center space-x-2"
-                      >
-                        <UserCheck className="w-4 h-4" />
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        onClick={() => updateApplicationStatus(user.id, false)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300 flex items-center space-x-2"
-                      >
-                        <UserX className="w-4 h-4" />
-                        <span>Reject</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))
-          )}
+          </motion.form>
         </motion.div>
       </div>
     </div>
   );
 };
 
-const StatCard = ({ icon, label, value }) => (
-  <div className="glass-effect rounded-xl p-6 text-center">
-    <div className="text-blue-300 mx-auto mb-2">{icon}</div>
-    <h3 className="text-2xl font-bold text-white">{value}</h3>
-    <p className="text-blue-200">{label}</p>
+// Reusable Components
+const InputField = ({ label, icon, name, type, value, onChange, placeholder }) => (
+  <div>
+    <label className="block text-white text-sm font-medium mb-2">{label}</label>
+    <div className="relative">
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5">
+        {icon}
+      </div>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full pl-12 pr-4 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
+        placeholder={placeholder}
+        required
+      />
+    </div>
   </div>
 );
 
-const InfoRow = ({ icon: Icon, text }) => (
-  <div className="flex items-center space-x-2">
-    <Icon className="w-4 h-4" />
-    <span>{text}</span>
+const PasswordField = ({ label, name, value, onChange, show, setShow }) => (
+  <div>
+    <label className="block text-white text-sm font-medium mb-2">{label}</label>
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <input
+        type={show ? 'text' : 'password'}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full pl-12 pr-12 py-3 bg-white bg-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-opacity-30 transition-all duration-300"
+        placeholder={label}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+      >
+        {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+      </button>
+    </div>
   </div>
 );
 
-export default AdminDashboard;
+export default AdminRegister;
