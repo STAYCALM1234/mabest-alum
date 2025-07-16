@@ -3,22 +3,36 @@ import { supabase } from '../components/supabaseClient';
 import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
-  const [applications, setApplications] = useState([]); // still used for admin view
+  const [users, setUsers] = useState([]);
   const [galleryImages, setGalleryImages] = useState([]);
 
-  // 🔃 Load session on mount
+  // ✅ Fetch all users (admin only)
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Could not fetch users');
+    } else {
+      setUsers(data);
+    }
+  };
+
+  // ✅ Load session on mount
   useEffect(() => {
-    const loadUser = async () => {
+    const loadSession = async () => {
       const { data } = await supabase.auth.getSession();
       const sessionUser = data?.session?.user;
 
       if (sessionUser) {
+        // Check if admin
         const { data: admin } = await supabase
           .from('admins')
           .select('*')
@@ -28,32 +42,31 @@ export const AuthProvider = ({ children }) => {
         if (admin) {
           setUser({ ...admin, role: 'admin' });
           setUserType('admin');
-          fetchApplications();
-        } else {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', sessionUser.email)
-            .eq('approved', true)
-            .single();
+          await fetchUsers();
+          return;
+        }
 
-          if (profile) {
-            setUser({ ...profile, role: 'user' });
-            setUserType('user');
-          }
+        // Check if verified user
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', sessionUser.email)
+          .eq('approved', true)
+          .single();
+
+        if (profile) {
+          setUser({ ...profile, role: 'user' });
+          setUserType('user');
         }
       }
     };
 
-    loadUser();
+    loadSession();
   }, []);
 
-  // ✅ Login method
+  // ✅ Login handler
   const login = async ({ email, password }, type) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       toast.error('Login failed: ' + error.message);
@@ -72,7 +85,7 @@ export const AuthProvider = ({ children }) => {
       if (admin) {
         setUser({ ...admin, role: 'admin' });
         setUserType('admin');
-        fetchApplications();
+        await fetchUsers();
         toast.success('Admin login successful');
         return { success: true, role: 'admin' };
       } else {
@@ -80,28 +93,28 @@ export const AuthProvider = ({ children }) => {
         await supabase.auth.signOut();
         return { success: false };
       }
-    } else {
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', sessionUser.email)
-        .eq('approved', true)
-        .single();
+    }
 
-      if (profile) {
-        setUser({ ...profile, role: 'user' });
-        setUserType('user');
-        toast.success('Login successful');
-        return { success: true, role: 'user' };
-      } else {
-        toast.error('Your account has not been approved yet');
-        await supabase.auth.signOut();
-        return { success: false };
-      }
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', sessionUser.email)
+      .eq('approved', true)
+      .single();
+
+    if (profile) {
+      setUser({ ...profile, role: 'user' });
+      setUserType('user');
+      toast.success('Login successful');
+      return { success: true, role: 'user' };
+    } else {
+      toast.error('Your account is not approved');
+      await supabase.auth.signOut();
+      return { success: false };
     }
   };
 
-  // 🚪 Logout method
+  // ✅ Logout
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -109,11 +122,11 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out');
   };
 
-  // 📝 Register new user
-  const registerUser = async (application) => {
+  // ✅ Register regular user
+  const registerUser = async (form) => {
     const { data: authUser, error: signupError } = await supabase.auth.signUp({
-      email: application.email,
-      password: application.password,
+      email: form.email,
+      password: form.password,
     });
 
     if (signupError) {
@@ -129,11 +142,11 @@ export const AuthProvider = ({ children }) => {
 
     const { error: dbError } = await supabase.from('users').insert([{
       id: userId,
-      name: application.name,
-      email: application.email,
-      phone: application.phone,
-      course: application.courseOfStudy,
-      approved: false,
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      course: form.courseOfStudy,
+      approved: null, // pending by default
       created_at: new Date().toISOString()
     }]);
 
@@ -142,23 +155,19 @@ export const AuthProvider = ({ children }) => {
       return { success: false };
     }
 
-    toast.success('Account created! Awaiting approval.');
+    toast.success('Account created! Awaiting admin approval.');
     return { success: true };
   };
 
   // ✅ Register admin
   const registerAdmin = async ({ username, email, password, adminSetupKey }) => {
     const ADMIN_SETUP_KEY = 'MABEST_ADMIN_2024';
-
     if (adminSetupKey !== ADMIN_SETUP_KEY) {
       toast.error('Invalid admin setup key');
       return { success: false };
     }
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
 
     if (authError) {
       toast.error(authError.message);
@@ -166,7 +175,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     const adminId = authData?.user?.id;
-
     if (!adminId) {
       toast.error("Failed to retrieve user ID");
       return { success: false };
@@ -188,41 +196,20 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
-  // ✅ Approve or reject users
-  const updateApplicationStatus = async (id, approved) => {
-    const { error } = await supabase
-      .from('users')
-      .update({ approved })
-      .eq('id', id);
+  // ✅ Admin approves or rejects user
+  const updateUserApproval = async (id, approved) => {
+    const { error } = await supabase.from('users').update({ approved }).eq('id', id);
 
     if (error) {
-      toast.error('Failed to update status');
+      toast.error('Failed to update user status');
       return;
     }
 
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, approved } : app))
-    );
-
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, approved } : u));
     toast.success(`User ${approved ? 'approved' : 'rejected'}`);
   };
 
-  // 📥 Load all user applications
-  const fetchApplications = async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Could not fetch users');
-      return;
-    }
-
-    setApplications(data);
-  };
-
-  // 🖼️ Add gallery image
+  // ✅ Add gallery image
   const addGalleryImage = async (image) => {
     const { error } = await supabase.from('gallery').insert([{
       url: image.url,
@@ -239,7 +226,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🗑️ Delete gallery image
+  // ✅ Delete gallery image
   const removeGalleryImage = async (id) => {
     const { error } = await supabase.from('gallery').delete().eq('id', id);
 
@@ -251,7 +238,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 📂 Fetch gallery
+  // ✅ Fetch all gallery images
   const fetchGalleryImages = async () => {
     const { data, error } = await supabase
       .from('gallery')
@@ -266,13 +253,13 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         userType,
-        applications,
+        users,
         galleryImages,
         login,
         logout,
         registerUser,
         registerAdmin,
-        updateApplicationStatus,
+        updateUserApproval,
         addGalleryImage,
         removeGalleryImage,
       }}

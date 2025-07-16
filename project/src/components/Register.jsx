@@ -45,29 +45,24 @@ const Register = () => {
 
     setIsLoading(true);
 
-    try {
-      const result = await registerUser({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        courseOfStudy: formData.course,
-        password: formData.password
-      });
+    const result = await registerUser({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      courseOfStudy: formData.course,
+      password: formData.password
+    });
 
-      if (result.success) {
-        navigate('/pending-verification');
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Unexpected error');
-    } finally {
-      setIsLoading(false);
+    setIsLoading(false);
+
+    if (result.success) {
+      navigate('/pending-verification');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Background Blur */}
+      {/* Blurred Background Bubbles */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
@@ -97,7 +92,9 @@ const Register = () => {
             className="glass-effect rounded-2xl p-8 space-y-6"
           >
             <div className="space-y-4">
-              {[{ label: 'Full Name', icon: User, name: 'name', type: 'text', placeholder: 'Enter your full name' },
+              {/* Full Name, Email, Phone */}
+              {[
+                { label: 'Full Name', icon: User, name: 'name', type: 'text', placeholder: 'Enter your full name' },
                 { label: 'Email', icon: Mail, name: 'email', type: 'email', placeholder: 'Enter your email' },
                 { label: 'Phone Number', icon: Phone, name: 'phone', type: 'tel', placeholder: 'Enter your phone number' }
               ].map(({ label, icon: Icon, name, type, placeholder }) => (
@@ -118,7 +115,7 @@ const Register = () => {
                 </div>
               ))}
 
-              {/* Course of Study */}
+              {/* Course Select */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">Course of Study</label>
                 <div className="relative">
@@ -138,7 +135,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Password Fields */}
+              {/* Password + Confirm */}
               {[{
                 label: 'Password', name: 'password', value: formData.password,
                 show: showPassword, setShow: setShowPassword

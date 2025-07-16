@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users,
-  UserCheck,
-  UserX,
-  Clock,
-  GraduationCap,
-  LogOut,
-  Search,
-  Filter,
-  Mail,
-  Phone,
-  BookOpen,
-  Calendar
+  Users, UserCheck, UserX, Clock, GraduationCap,
+  LogOut, Search, Filter, Mail, Phone, BookOpen, Calendar
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
-  const { user, logout, applications: users, updateApplicationStatus } = useAuth();
+  const { user, logout, users, updateUserApproval } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const navigate = useNavigate();
@@ -28,38 +18,43 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  const filteredApplications = users.filter(app => {
+  const getStatus = (approved) => {
+    if (approved === true) return 'approved';
+    if (approved === false) return 'rejected';
+    return 'pending';
+  };
+
+  const filteredUsers = users.filter(app => {
     const matchesSearch =
       app.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.courseOfStudy?.toLowerCase().includes(searchTerm.toLowerCase());
+      app.course?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesFilter =
-      filterStatus === 'all' ||
-      (filterStatus === 'pending' && app.approved === null) ||
-      (filterStatus === 'approved' && app.approved === true) ||
-      (filterStatus === 'rejected' && app.approved === false);
+    const status = getStatus(app.approved);
+    const matchesFilter = filterStatus === 'all' || filterStatus === status;
 
     return matchesSearch && matchesFilter;
   });
 
   const getStatusColor = (approved) => {
-    if (approved === true) return 'status-approved';
-    if (approved === false) return 'status-rejected';
-    return 'status-pending';
+    const status = getStatus(approved);
+    if (status === 'approved') return 'bg-green-600 text-white';
+    if (status === 'rejected') return 'bg-red-600 text-white';
+    return 'bg-yellow-500 text-white';
   };
 
   const getStatusIcon = (approved) => {
-    if (approved === true) return <UserCheck className="w-5 h-5" />;
-    if (approved === false) return <UserX className="w-5 h-5" />;
-    return <Clock className="w-5 h-5" />;
+    const status = getStatus(approved);
+    if (status === 'approved') return <UserCheck className="w-4 h-4" />;
+    if (status === 'rejected') return <UserX className="w-4 h-4" />;
+    return <Clock className="w-4 h-4" />;
   };
 
   const stats = {
     total: users.length,
-    approved: users.filter(u => u.approved === true).length,
-    rejected: users.filter(u => u.approved === false).length,
-    pending: users.filter(u => u.approved === null || u.approved === undefined).length
+    approved: users.filter(u => getStatus(u.approved) === 'approved').length,
+    rejected: users.filter(u => getStatus(u.approved) === 'rejected').length,
+    pending: users.filter(u => getStatus(u.approved) === 'pending').length,
   };
 
   return (
@@ -96,7 +91,7 @@ const AdminDashboard = () => {
       </motion.header>
 
       <div className="container mx-auto px-6 py-8">
-        {/* Stats Cards */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -143,21 +138,21 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
-        {/* User List */}
+        {/* User Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="space-y-4"
         >
-          {filteredApplications.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <div className="glass-effect rounded-xl p-12 text-center">
               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No Users Found</h3>
               <p className="text-blue-200">No users match your current filter/search.</p>
             </div>
           ) : (
-            filteredApplications.map((user, index) => (
+            filteredUsers.map((user, index) => (
               <motion.div
                 key={user.id}
                 initial={{ opacity: 0, x: -20 }}
@@ -177,36 +172,36 @@ const AdminDashboard = () => {
                         <h3 className="text-lg font-semibold text-white">{user.name}</h3>
                         <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.approved)}`}>
                           {getStatusIcon(user.approved)}
-                          <span>{user.approved === true ? 'approved' : user.approved === false ? 'rejected' : 'pending'}</span>
+                          <span>{getStatus(user.approved)}</span>
                         </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-200">
                       <InfoRow icon={Mail} text={user.email} />
                       <InfoRow icon={Phone} text={user.phone} />
-                      <InfoRow icon={BookOpen} text={user.courseOfStudy} />
-                      <InfoRow icon={Calendar} text={new Date(user.submittedAt).toLocaleDateString()} />
+                      <InfoRow icon={BookOpen} text={user.course} />
+                      <InfoRow icon={Calendar} text={new Date(user.created_at).toLocaleDateString()} />
                     </div>
                   </div>
 
-                  {user.approved === null || user.approved === undefined ? (
+                  {getStatus(user.approved) === 'pending' && (
                     <div className="flex space-x-3">
                       <button
-                        onClick={() => updateApplicationStatus(user.id, true)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300 flex items-center space-x-2"
+                        onClick={() => updateUserApproval(user.id, true)}
+                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition"
                       >
-                        <UserCheck className="w-4 h-4" />
-                        <span>Approve</span>
+                        <UserCheck className="inline w-4 h-4 mr-2" />
+                        Approve
                       </button>
                       <button
-                        onClick={() => updateApplicationStatus(user.id, false)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300 flex items-center space-x-2"
+                        onClick={() => updateUserApproval(user.id, false)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition"
                       >
-                        <UserX className="w-4 h-4" />
-                        <span>Reject</span>
+                        <UserX className="inline w-4 h-4 mr-2" />
+                        Reject
                       </button>
                     </div>
-                  ) : null}
+                  )}
                 </div>
               </motion.div>
             ))
