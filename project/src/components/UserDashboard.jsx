@@ -48,33 +48,30 @@ const UserDashboard = () => {
       const fileName = `${Date.now()}_${user.id}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('gallery')
         .upload(filePath, uploadData.file);
 
       if (uploadError) {
         toast.error('Upload failed');
-        console.error('Storage upload error:', uploadError); // 🔍 Log upload error
+        console.error('Storage upload error:', uploadError);
         setIsUploading(false);
         return;
       }
 
-      // Get public URL
       const { data: publicData, error: publicUrlError } = supabase.storage
         .from('gallery')
         .getPublicUrl(filePath);
 
       if (publicUrlError) {
         toast.error('Failed to get image URL');
-        console.error('Public URL error:', publicUrlError); // 🔍 Log URL error
+        console.error('Public URL error:', publicUrlError);
         setIsUploading(false);
         return;
       }
 
       const publicUrl = publicData.publicUrl;
 
-      // Insert metadata into the "gallery" table
       const { error: insertError } = await supabase
         .from('gallery')
         .insert([{
@@ -86,7 +83,7 @@ const UserDashboard = () => {
 
       if (insertError) {
         toast.error('Failed to save image metadata');
-        console.error('DB insert error:', insertError); // 🔍 Log DB insert error
+        console.error('DB insert error:', insertError);
         setIsUploading(false);
         return;
       }
@@ -99,7 +96,7 @@ const UserDashboard = () => {
       setShowUploadModal(false);
     } catch (err) {
       toast.error('Unexpected upload error');
-      console.error('Unexpected upload exception:', err); // 🔍 Log unexpected error
+      console.error('Unexpected upload exception:', err);
     } finally {
       setIsUploading(false);
     }
@@ -119,7 +116,7 @@ const UserDashboard = () => {
 
     if (error) {
       toast.error('Delete failed');
-      console.error('Delete error:', error); // 🔍 Log deletion error
+      console.error('Delete error:', error);
       return;
     }
     toast.success('Photo deleted');
@@ -131,7 +128,6 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,7 +149,6 @@ const UserDashboard = () => {
         </div>
       </motion.header>
 
-      {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -217,6 +212,18 @@ const UserDashboard = () => {
               <h3 className="text-lg font-bold">Upload Photo</h3>
               <button onClick={handleModalClose}><X className="w-5 h-5" /></button>
             </div>
+
+            {/* 📌 Upload Guidelines */}
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 rounded mb-4 text-sm">
+              <p className="font-semibold mb-2">📢 Upload Guidelines:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>You can delete your photo at any time. Upload only the image you want shown in the alumni gallery.</li>
+                <li>To contribute to the <strong>Graduation Page</strong>, please meet with an admin.</li>
+                <li>Your image must be <strong>high quality</strong> and portray Mabest Academy in a positive light.</li>
+                <li>Caption format: <em>Your Full Name - Set of 2024</em><br />Example: <span className="italic">OLUWADIYA AYOBAMI - Set of 2024</span></li>
+              </ul>
+            </div>
+
             <form onSubmit={handleUploadSubmit} className="space-y-4">
               <label className="text-white">Caption</label>
               <input
