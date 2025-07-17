@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../components/supabaseClient';
 import { toast } from 'react-hot-toast';
+import emailjs from '@emailjs/browser'; // ✅ added
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -186,12 +187,32 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
+  const sendApprovalEmail = async (email) => {
+    try {
+      await emailjs.send(
+        'service_2f9fptk',     // 🔁 Replace with your actual service ID
+        'template_prpdk5t',    // 🔁 Replace with your actual template ID
+        { to_email: email },
+        'VB4nxAAU4cuBFIN1c'  // 🔁 Replace with your actual public key
+      );
+    } catch (error) {
+      console.error('Email send failed', error);
+    }
+  };
+
   const updateUserApproval = async (id, approved) => {
     const { error } = await supabase.from('users').update({ approved }).eq('id', id);
 
     if (!error) {
       setUsers(prev => prev.map(u => u.id === id ? { ...u, approved } : u));
       toast.success(`User ${approved ? 'approved' : 'rejected'}`);
+
+      if (approved) {
+        const user = users.find(u => u.id === id);
+        if (user?.email) {
+          sendApprovalEmail(user.email);
+        }
+      }
     }
   };
 

@@ -115,7 +115,7 @@ const AdminRegister = () => {
               <PasswordField label="Confirm Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} show={showConfirmPassword} setShow={setShowConfirmPassword} />
               <InputField label="Admin Setup Key" icon={<Key />} name="adminSetupKey" type="password" value={formData.adminSetupKey} onChange={handleChange} placeholder="Enter admin setup key" />
               <p className="text-xs text-blue-200 mt-1">Contact the system administrator for the setup key</p>
-            </div>
+            </div>''
 
             <button
               type="submit"
